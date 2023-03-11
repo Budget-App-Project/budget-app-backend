@@ -1,0 +1,18 @@
+spring.datasource.url=jdbc:postgresql://localhost:5432/<database name>
+spring.datasource.username=<username>
+spring.datasource.password=<budgetapp>
+
+# this is to set how long before the connection between spring boot and the db times out
+spring.datasource.hikari.connectionTimeout=20000
+# this is to tell it how many open connections it can have at any one time
+spring.datasource.hikari.maximumPoolSize=10
+
+# this tells it the dialect to use which is postgres in this case
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQL95Dialect
+# this is
+spring.jpa.properties.hibernate.jdbc.lob.non_contenxtual_creations=true
+
+# this changes the database automatically based on the db model
+spring.jpa.hibernate.ddl-auto=update
+# this logs the sql queries in the console
+spring.jpa.show-sql=true
