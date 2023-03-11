@@ -9,7 +9,6 @@ spring.datasource.hikari.maximumPoolSize=10
 
 # this tells it the dialect to use which is postgres in this case
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQL95Dialect
-# this is
 spring.jpa.properties.hibernate.jdbc.lob.non_contenxtual_creations=true
 
 # this changes the database automatically based on the db model
