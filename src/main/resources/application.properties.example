@@ -15,3 +15,6 @@ spring.jpa.properties.hibernate.jdbc.lob.non_contenxtual_creations=true
 spring.jpa.hibernate.ddl-auto=update
 # this logs the sql queries in the console
 spring.jpa.show-sql=true
+
+jwt.secret=somesecret
+jwt.public=somepublic

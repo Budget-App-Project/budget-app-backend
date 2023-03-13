@@ -4,23 +4,27 @@ import com.example.budgetappbackend.model.Authentication;
 import com.example.budgetappbackend.model.User;
 import com.example.budgetappbackend.repository.AuthenticationRepository;
 import com.example.budgetappbackend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+
+
 
 @RestController
 @RequestMapping("/api/login")
 public class LoginController {
     private final UserRepository userRepository;
     private final AuthenticationRepository authenticationRepository;
+    @Value("${jwt.secret}")
+    private String secret;
 
     public LoginController(UserRepository userRepository, AuthenticationRepository authenticationRepository) {
         this.userRepository = userRepository;
@@ -44,6 +48,8 @@ public class LoginController {
         if (Arrays.equals(storedHashedPassword, hashedPassword)) {
             // generate jwt token to send back to client
             // then create routes for the adding, removing, and viewing expenses
+            System.out.println(secret);
+            String jws;
             return ResponseEntity.ok(HttpStatus.ACCEPTED);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect email or password");
