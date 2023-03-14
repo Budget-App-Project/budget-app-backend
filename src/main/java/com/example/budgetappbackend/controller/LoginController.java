@@ -4,18 +4,23 @@ import com.example.budgetappbackend.model.Authentication;
 import com.example.budgetappbackend.model.User;
 import com.example.budgetappbackend.repository.AuthenticationRepository;
 import com.example.budgetappbackend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
+import com.example.budgetappbackend.requestModel.LoginRequestModel;
+import com.example.budgetappbackend.responseModel.LoginResponseModel;
+import com.example.budgetappbackend.shared.KeyProperties;
+import com.google.gson.Gson;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import io.jsonwebtoken.Jwts;
 
 
 @RestController
@@ -23,17 +28,21 @@ import java.util.Arrays;
 public class LoginController {
     private final UserRepository userRepository;
     private final AuthenticationRepository authenticationRepository;
-    @Value("${jwt.secret}")
-    private String secret;
+    private static final Gson gson = new Gson();
 
     public LoginController(UserRepository userRepository, AuthenticationRepository authenticationRepository) {
         this.userRepository = userRepository;
         this.authenticationRepository = authenticationRepository;
+        // define and set private and public keys
+        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
+        KeyProperties.setPrivateKey(keyPair.getPrivate());
+        KeyProperties.setPublicKey(keyPair.getPublic());
     }
 
-    @GetMapping
-    public ResponseEntity validateUser(@RequestParam String email, @RequestParam String password) throws NoSuchAlgorithmException {
-        User associatedUser = userRepository.findByEmail(email);
+    @CrossOrigin
+    @PostMapping
+    public ResponseEntity validateUser(@RequestBody LoginRequestModel loginInfo) throws NoSuchAlgorithmException {
+        User associatedUser = userRepository.findByEmail(loginInfo.getEmail());
         if (associatedUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect email or password");
         }
@@ -44,13 +53,14 @@ public class LoginController {
         byte[] storedHashedPassword = associatedAuth.getHashedPassword();
         MessageDigest md = MessageDigest.getInstance("SHA-512");
         md.update(salt);
-        byte[] hashedPassword = md.digest(password.getBytes(StandardCharsets.UTF_8));
+        byte[] hashedPassword = md.digest(loginInfo.getPassword().getBytes(StandardCharsets.UTF_8));
         if (Arrays.equals(storedHashedPassword, hashedPassword)) {
             // generate jwt token to send back to client
             // then create routes for the adding, removing, and viewing expenses
-            System.out.println(secret);
-            String jws;
-            return ResponseEntity.ok(HttpStatus.ACCEPTED);
+            System.out.println("The user is authorized, sending jwt");
+            Date currDate = new Date();
+            String jws = Jwts.builder().setSubject(loginInfo.getEmail()).claim("id", associatedUser.getId()).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
+            return ResponseEntity.ok(gson.toJson(new LoginResponseModel(jws)));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect email or password");
         }

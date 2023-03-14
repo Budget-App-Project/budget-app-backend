@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -53,7 +52,7 @@ public class UserController {
             // create auth info in db.
             Authentication authInfo = authenticationRepository.save(new Authentication(salt, hashedPassword));
             // Use the returned authInfo object to then create corresponding entry in user repository
-            User createdUser = userRepository.save(new User(userInfo.getName(), userInfo.getEmail(), authInfo));
+            userRepository.save(new User(userInfo.getName(), userInfo.getEmail(), authInfo));
             return ResponseEntity.ok(HttpStatus.CREATED);
         }
     }
