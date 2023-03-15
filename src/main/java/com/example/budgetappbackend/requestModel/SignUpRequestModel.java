@@ -1,12 +1,12 @@
 package com.example.budgetappbackend.requestModel;
 
-public class UserRequestModel {
+public class SignUpRequestModel {
     private String email;
     private String name;
 
     private String password;
 
-    public UserRequestModel(String name, String email, String password) {
+    public SignUpRequestModel(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;

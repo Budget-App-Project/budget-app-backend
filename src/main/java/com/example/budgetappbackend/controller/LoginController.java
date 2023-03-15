@@ -27,12 +27,10 @@ import io.jsonwebtoken.Jwts;
 @RequestMapping("/api/login")
 public class LoginController {
     private final UserRepository userRepository;
-    private final AuthenticationRepository authenticationRepository;
     private static final Gson gson = new Gson();
 
-    public LoginController(UserRepository userRepository, AuthenticationRepository authenticationRepository) {
+    public LoginController(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.authenticationRepository = authenticationRepository;
         // define and set private and public keys
         KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
         KeyProperties.setPrivateKey(keyPair.getPrivate());
@@ -44,7 +42,7 @@ public class LoginController {
     public ResponseEntity validateUser(@RequestBody LoginRequestModel loginInfo) throws NoSuchAlgorithmException {
         User associatedUser = userRepository.findByEmail(loginInfo.getEmail());
         if (associatedUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect email or password");
+            return ResponseEntity.ok(gson.toJson("Incorrect email or password"));
         }
         // verify the user using the same process as was used to create the hash in the /api/user post route
         // get salt and hashedPassword
@@ -62,7 +60,7 @@ public class LoginController {
             String jws = Jwts.builder().setSubject(loginInfo.getEmail()).claim("id", associatedUser.getId()).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
             return ResponseEntity.ok(gson.toJson(new LoginResponseModel(jws)));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect email or password");
+            return ResponseEntity.ok(gson.toJson("Incorrect email or password"));
         }
 
     }
