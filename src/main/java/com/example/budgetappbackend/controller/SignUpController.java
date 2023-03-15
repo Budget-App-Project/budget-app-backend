@@ -32,6 +32,7 @@ public class SignUpController {
         this.authenticationRepository = authenticationRepository;
     }
 
+    @CrossOrigin
     @PostMapping
     public ResponseEntity postUser(@RequestBody SignUpRequestModel userInfo) {
         if (userInfo.getEmail() == null || userInfo.getName() == null || userInfo.getPassword() == null) {
