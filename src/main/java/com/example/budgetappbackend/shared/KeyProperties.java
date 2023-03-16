@@ -1,5 +1,8 @@
 package com.example.budgetappbackend.shared;
 
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -22,4 +25,5 @@ public class KeyProperties {
     public static void setPublicKey(PublicKey publicKey) {
         KeyProperties.publicKey = publicKey;
     }
+
 }

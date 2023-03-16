@@ -1,6 +1,10 @@
 package com.example.budgetappbackend.controller;
 
+import com.example.budgetappbackend.shared.KeyProperties;
 import com.google.gson.Gson;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +25,13 @@ public class ExpenseListController {
     @GetMapping
     public ResponseEntity listOfExpenses(@RequestHeader("Authorization") String authorization) {
         // now I just need to authenticate the jwt that was sent as authorization and return the expense list with the given sorting parameters that I will add later
-        return ResponseEntity.ok(gson.toJson(authorization));
+        try {
+            Jws jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
+            Object body = jws.getBody();
+            System.out.println("Valid jwt");
+            return ResponseEntity.ok(gson.toJson(authorization));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+        }
     }
 }
