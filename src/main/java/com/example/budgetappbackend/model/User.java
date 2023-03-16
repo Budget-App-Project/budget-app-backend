@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @OneToMany(mappedBy = "expenses")
     private Long id;
 
     private String name;
