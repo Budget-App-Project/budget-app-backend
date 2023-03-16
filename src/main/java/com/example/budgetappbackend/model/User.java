@@ -1,11 +1,13 @@
 package com.example.budgetappbackend.model;
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "users", indexes = @Index(columnList = "email", unique = true))
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     private String name;
