@@ -7,7 +7,7 @@ import java.util.Set;
 @Table(name = "users", indexes = @Index(columnList = "email", unique = true))
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;

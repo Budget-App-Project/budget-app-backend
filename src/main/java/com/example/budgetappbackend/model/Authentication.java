@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 public class Authentication {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private byte[] salt;

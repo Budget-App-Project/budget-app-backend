@@ -1,7 +1,9 @@
 package com.example.budgetappbackend.controller;
 
+import com.example.budgetappbackend.model.Expenses;
 import com.example.budgetappbackend.repository.ExpensesRepository;
 import com.example.budgetappbackend.requestModel.ExpenseInfoRequestModel;
+import com.example.budgetappbackend.responseModel.ErrorResponseModel;
 import com.example.budgetappbackend.shared.JwsModel;
 import com.example.budgetappbackend.shared.KeyProperties;
 import com.google.gson.Gson;
@@ -10,6 +12,8 @@ import io.jsonwebtoken.Jwts;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -31,29 +35,30 @@ public class ExpenseListController {
         try {
             Jws jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
             Object body = jws.getBody();
-            System.out.println(body);
-            System.out.println("Valid jwt");
+            JwsModel jwsValues = gson.fromJson(gson.toJson(body), JwsModel.class);
             return ResponseEntity.ok(gson.toJson(authorization));
         } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e);
+            return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
         }
     }
 
     @CrossOrigin
     @PostMapping("/add")
     public ResponseEntity addExpense(@RequestHeader("Authorization") String authorization, @RequestBody ExpenseInfoRequestModel expenseInfo) {
-        try {
-            Jws jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
-            Object body = jws.getBody();
-            System.out.println("In the try block");
-            // you have to convert to json to be able to bring it back from json which seems unnecessary. There has to be a better way to implement later.
-            JwsModel jwsValues = gson.fromJson(gson.toJson(body), JwsModel.class);
-            // add the corresponding expense to the expenses' database.
-
-            return ResponseEntity.ok(gson.toJson(authorization));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+        if (expenseInfo.getWhatFor() != null && expenseInfo.getPrice() != null && expenseInfo.getWhatTime() != null && expenseInfo.getNecessary() != null) {
+            try {
+                Jws jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
+                Object body = jws.getBody();
+                // you have to convert to json to be able to bring it back from json ironically. I will look into just sending the user_id in the request body or as a different header or as a parameter
+                JwsModel jwsValues = gson.fromJson(gson.toJson(body), JwsModel.class);
+                // add the corresponding expense to the expenses' database.
+                expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor(), jwsValues.getId(), expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
+                return ResponseEntity.status(HttpStatus.CREATED).body(gson.toJson("Created"));
+            } catch (Exception e) {
+                return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
+            }
+        } else {
+            return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Please provide all fields")));
         }
     }
 }

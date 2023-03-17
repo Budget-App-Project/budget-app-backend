@@ -4,18 +4,20 @@ import jakarta.persistence.*;
 
 import java.util.Date;
 
+
 @Entity
 @Table(name = "expenses", indexes = @Index(columnList = "user_id", unique = false))
 public class Expenses {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String price;
 
     private String whatFor;
 
-    private Date when;
+    @Temporal(TemporalType.DATE)
+    private Date whatTime;
 
     private Boolean necessary;
 
@@ -25,9 +27,9 @@ public class Expenses {
     public Expenses() {
     }
 
-    public Expenses(String price, String whatFor, Long userId, Date when, Boolean necessary) {
+    public Expenses(String price, String whatFor, Long userId, Date whatTime, Boolean necessary) {
         this.price = price;
-        this.when = when;
+        this.whatTime = whatTime;
         this.whatFor = whatFor;
         this.necessary = necessary;
         this.userId = userId;
@@ -49,12 +51,12 @@ public class Expenses {
         this.price = price;
     }
 
-    public Date getWhen() {
-        return when;
+    public Date getWhatTime() {
+        return whatTime;
     }
 
-    public void setWhen(Date when) {
-        this.when = when;
+    public void setWhatTime(Date whatTime) {
+        this.whatTime = whatTime;
     }
 
     public String getWhatFor() {

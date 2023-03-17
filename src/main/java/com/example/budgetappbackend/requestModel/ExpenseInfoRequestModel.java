@@ -1,19 +1,19 @@
 package com.example.budgetappbackend.requestModel;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class ExpenseInfoRequestModel {
     private String price;
-    private Date when; // this might need to be a string and then be converted to date later...
+    private Date whatTime; // this might need to be a string and then be converted to date later...
     private String whatFor;
     private Boolean necessary;
 
     public ExpenseInfoRequestModel() {
     }
 
-    public ExpenseInfoRequestModel(String price, Date when, String whatFor, Boolean necessary) {
+    public ExpenseInfoRequestModel(String price, Date whatTime, String whatFor, Boolean necessary) {
         this.price = price;
-        this.when = when;
+        this.whatTime = whatTime;
         this.whatFor = whatFor;
         this.necessary = necessary;
     }
@@ -26,12 +26,12 @@ public class ExpenseInfoRequestModel {
         this.price = price;
     }
 
-    public Date getWhen() {
-        return when;
+    public Date getWhatTime() {
+        return whatTime;
     }
 
-    public void setWhen(Date when) {
-        this.when = when;
+    public void setWhatTime(Date whatTime) {
+        this.whatTime = whatTime;
     }
 
     public String getWhatFor() {
