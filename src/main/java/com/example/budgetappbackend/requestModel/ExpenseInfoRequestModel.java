@@ -1,44 +1,21 @@
-package com.example.budgetappbackend.model;
-
-import jakarta.persistence.*;
+package com.example.budgetappbackend.requestModel;
 
 import java.util.Date;
 
-@Entity
-@Table(name = "expenses", indexes = @Index(columnList = "user_id", unique = false))
-public class Expenses {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-
+public class ExpenseInfoRequestModel {
     private String price;
-
+    private Date when; // this might need to be a string and then be converted to date later...
     private String whatFor;
-
-    private Date when;
-
     private Boolean necessary;
 
-    @Column(name = "user_id")
-    private Long userId;
-
-    public Expenses() {
+    public ExpenseInfoRequestModel() {
     }
 
-    public Expenses(String price, String whatFor, Long userId, Date when, Boolean necessary) {
+    public ExpenseInfoRequestModel(String price, Date when, String whatFor, Boolean necessary) {
         this.price = price;
         this.when = when;
         this.whatFor = whatFor;
         this.necessary = necessary;
-        this.userId = userId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getPrice() {
@@ -72,13 +49,4 @@ public class Expenses {
     public void setNecessary(Boolean necessary) {
         this.necessary = necessary;
     }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
 }
-
