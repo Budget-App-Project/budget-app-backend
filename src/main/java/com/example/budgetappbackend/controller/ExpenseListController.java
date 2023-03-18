@@ -4,16 +4,14 @@ import com.example.budgetappbackend.model.Expenses;
 import com.example.budgetappbackend.repository.ExpensesRepository;
 import com.example.budgetappbackend.requestModel.ExpenseInfoRequestModel;
 import com.example.budgetappbackend.responseModel.ErrorResponseModel;
+import com.example.budgetappbackend.responseModel.SuccessResponseModel;
 import com.example.budgetappbackend.shared.JwsModel;
 import com.example.budgetappbackend.shared.KeyProperties;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -53,7 +51,7 @@ public class ExpenseListController {
                 JwsModel jwsValues = gson.fromJson(gson.toJson(body), JwsModel.class);
                 // add the corresponding expense to the expenses' database.
                 expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor(), jwsValues.getId(), expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
-                return ResponseEntity.status(HttpStatus.CREATED).body(gson.toJson("Created"));
+                return ResponseEntity.ok(new SuccessResponseModel("Successfully created expense"));
             } catch (Exception e) {
                 return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
             }
