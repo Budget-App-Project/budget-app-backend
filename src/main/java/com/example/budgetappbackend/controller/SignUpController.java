@@ -58,7 +58,7 @@ public class SignUpController {
                 // Use the returned authInfo object to then create corresponding entry in user repository
                 User associatedUser = userRepository.save(new User(userInfo.getName(), userInfo.getEmail(), authInfo));
                 Date currDate = new Date();
-                String jws = Jwts.builder().setSubject(userInfo.getEmail()).claim("id", associatedUser.getId()).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
+                String jws = Jwts.builder().setSubject(userInfo.getEmail()).setId(String.valueOf(associatedUser.getId())).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
                 return ResponseEntity.ok(gson.toJson(new LoginResponseModel(jws)));
             } catch (Exception e) {
                 System.out.println(e);

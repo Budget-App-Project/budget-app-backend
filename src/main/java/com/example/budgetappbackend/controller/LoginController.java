@@ -57,7 +57,7 @@ public class LoginController {
             // then create routes for the adding, removing, and viewing expenses
             System.out.println("The user is authorized, sending jwt");
             Date currDate = new Date();
-            String jws = Jwts.builder().setSubject(loginInfo.getEmail()).claim("id", associatedUser.getId()).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
+            String jws = Jwts.builder().setSubject(loginInfo.getEmail()).setId(String.valueOf(associatedUser.getId())).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
             return ResponseEntity.ok(gson.toJson(new LoginResponseModel(jws)));
         } else {
             return ResponseEntity.ok(gson.toJson("Incorrect email or password"));

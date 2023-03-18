@@ -8,10 +8,14 @@ import com.example.budgetappbackend.responseModel.SuccessResponseModel;
 import com.example.budgetappbackend.shared.JwsModel;
 import com.example.budgetappbackend.shared.KeyProperties;
 import com.google.gson.Gson;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static java.lang.Long.parseLong;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -45,12 +49,11 @@ public class ExpenseListController {
     public ResponseEntity addExpense(@RequestHeader("Authorization") String authorization, @RequestBody ExpenseInfoRequestModel expenseInfo) {
         if (expenseInfo.getWhatFor() != null && expenseInfo.getPrice() != null && expenseInfo.getWhatTime() != null && expenseInfo.getNecessary() != null) {
             try {
-                Jws jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
-                Object body = jws.getBody();
-                // you have to convert to json to be able to bring it back from json ironically. I will look into just sending the user_id in the request body or as a different header or as a parameter
-                JwsModel jwsValues = gson.fromJson(gson.toJson(body), JwsModel.class);
+                Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
+                Long userId = parseLong(jws.getBody().getId());
+                System.out.println(userId);
                 // add the corresponding expense to the expenses' database.
-                expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor(), jwsValues.getId(), expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
+                expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor(), userId, expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
                 return ResponseEntity.ok(new SuccessResponseModel("Successfully created expense"));
             } catch (Exception e) {
                 return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
