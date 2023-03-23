@@ -1,9 +1,10 @@
 package com.example.budgetappbackend.requestModel;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 
 public class ExpenseInfoRequestModel {
-    private String price;
+    private BigDecimal price;
     private Date whatTime; // this might need to be a string and then be converted to date later...
     private String whatFor;
     private Boolean necessary;
@@ -11,18 +12,18 @@ public class ExpenseInfoRequestModel {
     public ExpenseInfoRequestModel() {
     }
 
-    public ExpenseInfoRequestModel(String price, Date whatTime, String whatFor, Boolean necessary) {
+    public ExpenseInfoRequestModel(BigDecimal price, Date whatTime, String whatFor, Boolean necessary) {
         this.price = price;
         this.whatTime = whatTime;
         this.whatFor = whatFor;
         this.necessary = necessary;
     }
 
-    public String getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

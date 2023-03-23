@@ -2,6 +2,7 @@ package com.example.budgetappbackend.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 
@@ -12,7 +13,7 @@ public class Expenses {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String price;
+    private BigDecimal price;
 
     private String whatFor;
 
@@ -27,7 +28,7 @@ public class Expenses {
     public Expenses() {
     }
 
-    public Expenses(String price, String whatFor, Long userId, Date whatTime, Boolean necessary) {
+    public Expenses(BigDecimal price, String whatFor, Long userId, Date whatTime, Boolean necessary) {
         this.price = price;
         this.whatTime = whatTime;
         this.whatFor = whatFor;
@@ -43,11 +44,11 @@ public class Expenses {
         this.id = id;
     }
 
-    public String getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
