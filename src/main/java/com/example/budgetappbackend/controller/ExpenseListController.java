@@ -13,7 +13,9 @@ import io.jsonwebtoken.Jwts;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import static java.lang.Long.parseLong;
 
@@ -32,14 +34,17 @@ public class ExpenseListController {
 
     @CrossOrigin
     @GetMapping
-    public ResponseEntity listOfExpenses(@RequestHeader("Authorization") String authorization, @RequestParam int page, @RequestParam Date startDate, @RequestParam Date endDate) {
+    public ResponseEntity listOfExpenses(@RequestHeader("Authorization") String authorization, @RequestParam int page, @RequestParam Long startDate, @RequestParam Long endDate) {
         if (startDate != null && endDate != null) {
             try {
+                System.out.println("validating jwt");
                 // now I just need to authenticate the jwt that was sent as authorization and return the expense list with the given sorting parameters that I will add later
                 Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
                 Long userId = parseLong(jws.getBody().getId());
                 // now I need to query the database for the necessary information
-                return ResponseEntity.ok(gson.toJson(authorization));
+                List<Expenses> relevantExpenses = expensesRepository.findRelevantExpenses(userId, new Date(startDate), new Date(endDate));
+                System.out.println("Valid jwt");
+                return ResponseEntity.ok(gson.toJson(relevantExpenses));
             } catch (Exception e) {
                 return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
             }
