@@ -36,6 +36,13 @@ public class Expenses {
         this.userId = userId;
     }
 
+    public void setAllButId(BigDecimal price, String whatFor, Date whatTime, Boolean necessary) {
+        this.price = price;
+        this.whatTime = whatTime;
+        this.whatFor = whatFor;
+        this.necessary = necessary;
+    }
+
     public Long getId() {
         return id;
     }

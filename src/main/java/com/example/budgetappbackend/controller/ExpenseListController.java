@@ -86,10 +86,7 @@ public class ExpenseListController {
                 if (assocExpenseOptional.isPresent()) {
                     Expenses assocExpense = assocExpenseOptional.get();
                     if (assocExpense.getUserId() == userId) {
-                        assocExpense.setPrice(expenseInfo.getPrice());
-                        assocExpense.setWhatFor(expenseInfo.getWhatFor());
-                        assocExpense.setWhatTime(expenseInfo.getWhatTime());
-                        assocExpense.setNecessary(expenseInfo.getNecessary());
+                        assocExpense.setAllButId(expenseInfo.getPrice(), expenseInfo.getWhatFor(), expenseInfo.getWhatTime(), expenseInfo.getNecessary());
                         expensesRepository.save(assocExpense);
                         return ResponseEntity.ok(new SuccessResponseModel("Successfully updated expense"));
                     } else {
