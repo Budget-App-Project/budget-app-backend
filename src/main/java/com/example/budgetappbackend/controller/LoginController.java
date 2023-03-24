@@ -40,7 +40,7 @@ public class LoginController {
     @CrossOrigin
     @PostMapping
     public ResponseEntity validateUser(@RequestBody LoginRequestModel loginInfo) throws NoSuchAlgorithmException {
-        User associatedUser = userRepository.findByEmail(loginInfo.getEmail());
+        User associatedUser = userRepository.findByEmail(loginInfo.getEmail().toLowerCase());
         if (associatedUser == null) {
             return ResponseEntity.ok(gson.toJson("Incorrect email or password"));
         }

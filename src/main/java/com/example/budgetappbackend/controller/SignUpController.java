@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +37,7 @@ public class SignUpController {
         if (userInfo.getEmail() == null || userInfo.getName() == null || userInfo.getPassword() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Must provide all necessary user information");
         }
-        boolean userAlreadyExists = this.userRepository.existsByEmail(userInfo.getEmail());
+        boolean userAlreadyExists = this.userRepository.existsByEmail(userInfo.getEmail().toLowerCase());
         if (userAlreadyExists) {
             // return that the user already exists with 409 status code
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
@@ -56,12 +55,11 @@ public class SignUpController {
                 // create auth info in db.
                 Authentication authInfo = authenticationRepository.save(new Authentication(salt, hashedPassword));
                 // Use the returned authInfo object to then create corresponding entry in user repository
-                User associatedUser = userRepository.save(new User(userInfo.getName(), userInfo.getEmail(), authInfo));
+                User associatedUser = userRepository.save(new User(userInfo.getName(), userInfo.getEmail().toLowerCase(), authInfo));
                 Date currDate = new Date();
                 String jws = Jwts.builder().setSubject(userInfo.getEmail()).setId(String.valueOf(associatedUser.getId())).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
                 return ResponseEntity.ok(gson.toJson(new LoginResponseModel(jws)));
             } catch (Exception e) {
-                System.out.println(e);
                 return ResponseEntity.ok(gson.toJson("There was a problem creating the user, please try again later"));
             }
         }
