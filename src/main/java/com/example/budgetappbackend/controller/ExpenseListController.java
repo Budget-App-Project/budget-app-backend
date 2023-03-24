@@ -3,6 +3,7 @@ package com.example.budgetappbackend.controller;
 import com.example.budgetappbackend.model.Expenses;
 import com.example.budgetappbackend.repository.ExpensesRepository;
 import com.example.budgetappbackend.requestModel.ExpenseInfoRequestModel;
+import com.example.budgetappbackend.requestModel.PutExpenseInfoRequestModel;
 import com.example.budgetappbackend.responseModel.ErrorResponseModel;
 import com.example.budgetappbackend.responseModel.SuccessResponseModel;
 import com.example.budgetappbackend.shared.KeyProperties;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.Long.parseLong;
 
@@ -56,15 +58,75 @@ public class ExpenseListController {
     @CrossOrigin
     @PostMapping("/add")
     public ResponseEntity addExpense(@RequestHeader("Authorization") String authorization, @RequestBody ExpenseInfoRequestModel expenseInfo) {
-        System.out.println(expenseInfo.getPrice());
         if (expenseInfo.getWhatFor() != null && expenseInfo.getPrice() != null && expenseInfo.getWhatTime() != null && expenseInfo.getNecessary() != null) {
             try {
                 Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
                 Long userId = parseLong(jws.getBody().getId());
-                System.out.println(userId);
                 // add the corresponding expense to the expenses' database.
                 expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor(), userId, expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
                 return ResponseEntity.ok(new SuccessResponseModel("Successfully created expense"));
+            } catch (Exception e) {
+                return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
+            }
+        } else {
+            return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Please provide all fields")));
+        }
+    }
+
+    @CrossOrigin
+    @PutMapping("/update")
+    public ResponseEntity updateExpense(@RequestHeader("Authorization") String authorization, @RequestBody PutExpenseInfoRequestModel expenseInfo) {
+        if (expenseInfo.getWhatFor() != null && expenseInfo.getPrice() != null && expenseInfo.getWhatTime() != null && expenseInfo.getNecessary() != null && expenseInfo.getExpenseId() != null) {
+            try {
+                Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
+                Long userId = parseLong(jws.getBody().getId());
+                // add the corresponding expense to the expenses' database.
+                Optional<Expenses> assocExpenseOptional = expensesRepository.findById(expenseInfo.getExpenseId());
+                // test if the optional returned anything, if not return a no associate expense message
+                if (assocExpenseOptional.isPresent()) {
+                    Expenses assocExpense = assocExpenseOptional.get();
+                    if (assocExpense.getUserId() == userId) {
+                        assocExpense.setPrice(expenseInfo.getPrice());
+                        assocExpense.setWhatFor(expenseInfo.getWhatFor());
+                        assocExpense.setWhatTime(expenseInfo.getWhatTime());
+                        assocExpense.setNecessary(expenseInfo.getNecessary());
+                        expensesRepository.save(assocExpense);
+                        return ResponseEntity.ok(new SuccessResponseModel("Successfully updated expense"));
+                    } else {
+                        return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Unauthorized User")));
+                    }
+                } else {
+                    return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid Expense ID")));
+                }
+            } catch (Exception e) {
+                return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
+            }
+        } else {
+            return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Please provide all fields")));
+        }
+    }
+
+    @CrossOrigin
+    @DeleteMapping("/delete")
+    public ResponseEntity deleteExpense(@RequestHeader("Authorization") String authorization, @RequestParam Long expenseId) {
+        if (expenseId != null) {
+            try {
+                Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
+                Long userId = parseLong(jws.getBody().getId());
+                // add the corresponding expense to the expenses' database.
+                Optional<Expenses> assocExpenseOptional = expensesRepository.findById(expenseId);
+                // test if the optional returned anything, if not return a no associate expense message
+                if (assocExpenseOptional.isPresent()) {
+                    Expenses assocExpense = assocExpenseOptional.get();
+                    if (assocExpense.getUserId() == userId) {
+                        expensesRepository.deleteById(expenseId);
+                        return ResponseEntity.ok(new SuccessResponseModel("Successfully deleted expense"));
+                    } else {
+                        return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Unauthorized User")));
+                    }
+                } else {
+                    return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid Expense ID")));
+                }
             } catch (Exception e) {
                 return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
             }
