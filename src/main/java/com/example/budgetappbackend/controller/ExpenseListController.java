@@ -11,13 +11,21 @@ import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import jakarta.annotation.Resource;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.lang.Long.parseLong;
 
@@ -36,7 +44,7 @@ public class ExpenseListController {
 
     @CrossOrigin
     @GetMapping
-    public ResponseEntity listOfExpenses(@RequestHeader("Authorization") String authorization, @RequestParam int page, @RequestParam Long startDate, @RequestParam Long endDate) {
+    public ResponseEntity listOfExpenses(@RequestHeader("Authorization") String authorization, @RequestParam Long startDate, @RequestParam Long endDate) {
         if (startDate != null && endDate != null) {
             try {
                 System.out.println("validating jwt");
@@ -63,7 +71,7 @@ public class ExpenseListController {
                 Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
                 Long userId = parseLong(jws.getBody().getId());
                 // add the corresponding expense to the expenses' database.
-                expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor(), userId, expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
+                expensesRepository.save(new Expenses(expenseInfo.getPrice(), expenseInfo.getWhatFor().toLowerCase(), userId, expenseInfo.getWhatTime(), expenseInfo.getNecessary()));
                 return ResponseEntity.ok(new SuccessResponseModel("Successfully created expense"));
             } catch (Exception e) {
                 return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
@@ -130,5 +138,65 @@ public class ExpenseListController {
         } else {
             return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Please provide all fields")));
         }
+    }
+
+    @CrossOrigin
+    @GetMapping(value = "/exportCSV", produces = "text/csv")
+    public ResponseEntity<InputStreamResource> exportCSV() {
+        // csv header
+        String[] csvHeader = {
+                "Expense", "Cost", "Necessary", "Date"
+        };
+
+        // declaring date format:
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+
+        // data retrieving logic goes here
+        List<Expenses> expenses = expensesRepository.findAll();
+        List<List<Object>> csvBody = new ArrayList<>();
+        for (Expenses expense : expenses) {
+            csvBody.add(Arrays.asList(expense.getWhatFor().substring(0, 1).toUpperCase() + expense.getWhatFor().substring(1), expense.getPrice(), expense.getNecessary() ? 'Y' : 'N', dateFormat.format(expense.getWhatTime())));
+        }
+
+        ByteArrayInputStream byteArrayOutputStream;
+
+        // closing resources by using a try with resources
+        // https://www.baeldung.com/java-try-with-resources
+        try (
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                // defining the CSV printer
+                CSVPrinter csvPrinter = new CSVPrinter(
+                        new PrintWriter(out),
+                        // withHeader is optional
+                        CSVFormat.DEFAULT.withHeader(csvHeader)
+                );
+        ) {
+            // populating the CSV content
+            for (List<Object> record : csvBody)
+                csvPrinter.printRecord(record);
+
+            // writing the underlying stream
+            csvPrinter.flush();
+
+            byteArrayOutputStream = new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        InputStreamResource fileInputStream = new InputStreamResource(byteArrayOutputStream);
+
+        String csvFileName = "Budget and Expenses.csv";
+
+        // setting HTTP headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + csvFileName);
+        // defining the custom Content-Type
+        headers.set(HttpHeaders.CONTENT_TYPE, "text/csv");
+
+        return new ResponseEntity<>(
+                fileInputStream,
+                headers,
+                HttpStatus.OK
+        );
     }
 }
