@@ -24,6 +24,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -142,61 +144,76 @@ public class ExpenseListController {
 
     @CrossOrigin
     @GetMapping(value = "/exportCSV", produces = "text/csv")
-    public ResponseEntity<InputStreamResource> exportCSV() {
-        // csv header
-        String[] csvHeader = {
-                "Expense", "Cost", "Necessary", "Date"
-        };
+    public ResponseEntity<Object> exportCSV(@RequestParam String authorization, @RequestParam Long startDate, @RequestParam Long endDate) {
+        try {
+            Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
+            Long userId = parseLong(jws.getBody().getId());
+            // csv header
+            String[] csvHeader = {
+                    "Expense", "Cost", "Necessary", "Date"
+            };
 
-        // declaring date format:
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            // declaring date format:
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+            BigDecimal totalSpending = BigDecimal.valueOf(0);
+            BigDecimal totalNecessarySpending = BigDecimal.valueOf(0);
 
-        // data retrieving logic goes here
-        List<Expenses> expenses = expensesRepository.findAll();
-        List<List<Object>> csvBody = new ArrayList<>();
-        for (Expenses expense : expenses) {
-            csvBody.add(Arrays.asList(expense.getWhatFor().substring(0, 1).toUpperCase() + expense.getWhatFor().substring(1), expense.getPrice(), expense.getNecessary() ? 'Y' : 'N', dateFormat.format(expense.getWhatTime())));
+            // data retrieving logic goes here
+            List<Expenses> expenses = expensesRepository.findRelevantExpenses(userId, new Date(startDate), new Date(endDate));
+            List<List<Object>> csvBody = new ArrayList<>();
+            for (Expenses expense : expenses) {
+                totalSpending.add(expense.getPrice());
+                if (expense.getNecessary()) {
+                    totalNecessarySpending.add(expense.getPrice());
+                }
+                csvBody.add(Arrays.asList(expense.getWhatFor().substring(0, 1).toUpperCase() + expense.getWhatFor().substring(1), expense.getPrice(), expense.getNecessary() ? 'Y' : 'N', dateFormat.format(expense.getWhatTime())));
+            }
+
+            csvBody.add(Arrays.asList("", "Total Spending", "Total Necessary Spending"));
+            csvBody.add(Arrays.asList("", totalSpending, totalNecessarySpending));
+
+            ByteArrayInputStream byteArrayOutputStream;
+
+            // closing resources by using a try with resources
+            // https://www.baeldung.com/java-try-with-resources
+            try (
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    // defining the CSV printer
+                    CSVPrinter csvPrinter = new CSVPrinter(
+                            new PrintWriter(out),
+                            // withHeader is optional
+                            CSVFormat.DEFAULT.withHeader(csvHeader)
+                    );
+            ) {
+                // populating the CSV content
+                for (List<Object> record : csvBody)
+                    csvPrinter.printRecord(record);
+
+                // writing the underlying stream
+                csvPrinter.flush();
+
+                byteArrayOutputStream = new ByteArrayInputStream(out.toByteArray());
+            } catch (IOException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+
+            InputStreamResource fileInputStream = new InputStreamResource(byteArrayOutputStream);
+
+            String csvFileName = "Budget and Expenses.csv";
+
+            // setting HTTP headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + csvFileName);
+            // defining the custom Content-Type
+            headers.set(HttpHeaders.CONTENT_TYPE, "text/csv");
+
+            return new ResponseEntity<>(
+                    fileInputStream,
+                    headers,
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
         }
-
-        ByteArrayInputStream byteArrayOutputStream;
-
-        // closing resources by using a try with resources
-        // https://www.baeldung.com/java-try-with-resources
-        try (
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                // defining the CSV printer
-                CSVPrinter csvPrinter = new CSVPrinter(
-                        new PrintWriter(out),
-                        // withHeader is optional
-                        CSVFormat.DEFAULT.withHeader(csvHeader)
-                );
-        ) {
-            // populating the CSV content
-            for (List<Object> record : csvBody)
-                csvPrinter.printRecord(record);
-
-            // writing the underlying stream
-            csvPrinter.flush();
-
-            byteArrayOutputStream = new ByteArrayInputStream(out.toByteArray());
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        InputStreamResource fileInputStream = new InputStreamResource(byteArrayOutputStream);
-
-        String csvFileName = "Budget and Expenses.csv";
-
-        // setting HTTP headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + csvFileName);
-        // defining the custom Content-Type
-        headers.set(HttpHeaders.CONTENT_TYPE, "text/csv");
-
-        return new ResponseEntity<>(
-                fileInputStream,
-                headers,
-                HttpStatus.OK
-        );
     }
 }
