@@ -11,10 +11,10 @@ import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import jakarta.annotation.Resource;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -144,7 +143,7 @@ public class ExpenseListController {
 
     @CrossOrigin
     @GetMapping(value = "/exportCSV", produces = "text/csv")
-    public ResponseEntity<Object> exportCSV(@RequestParam String authorization, @RequestParam Long startDate, @RequestParam Long endDate) {
+    public ResponseEntity<Object> exportCSV(@RequestHeader("Authorization") String authorization, @RequestParam Long startDate, @RequestParam Long endDate, @RequestParam Long minValue, @RequestParam Long maxValue, @RequestParam String sortBy, @RequestParam boolean includeUnnecessary) {
         try {
             Jws<Claims> jws = Jwts.parserBuilder().setSigningKey(KeyProperties.getPublicKey()).build().parseClaimsJws(authorization);
             Long userId = parseLong(jws.getBody().getId());
@@ -152,25 +151,6 @@ public class ExpenseListController {
             String[] csvHeader = {
                     "Expense", "Cost", "Necessary", "Date"
             };
-
-            // declaring date format:
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-            BigDecimal totalSpending = BigDecimal.valueOf(0);
-            BigDecimal totalNecessarySpending = BigDecimal.valueOf(0);
-
-            // data retrieving logic goes here
-            List<Expenses> expenses = expensesRepository.findRelevantExpenses(userId, new Date(startDate), new Date(endDate));
-            List<List<Object>> csvBody = new ArrayList<>();
-            for (Expenses expense : expenses) {
-                totalSpending.add(expense.getPrice());
-                if (expense.getNecessary()) {
-                    totalNecessarySpending.add(expense.getPrice());
-                }
-                csvBody.add(Arrays.asList(expense.getWhatFor().substring(0, 1).toUpperCase() + expense.getWhatFor().substring(1), expense.getPrice(), expense.getNecessary() ? 'Y' : 'N', dateFormat.format(expense.getWhatTime())));
-            }
-
-            csvBody.add(Arrays.asList("", "Total Spending", "Total Necessary Spending"));
-            csvBody.add(Arrays.asList("", totalSpending, totalNecessarySpending));
 
             ByteArrayInputStream byteArrayOutputStream;
 
@@ -182,12 +162,27 @@ public class ExpenseListController {
                     CSVPrinter csvPrinter = new CSVPrinter(
                             new PrintWriter(out),
                             // withHeader is optional
-                            CSVFormat.DEFAULT.withHeader(csvHeader)
+                            CSVFormat.EXCEL.withHeader(csvHeader)
                     );
             ) {
-                // populating the CSV content
-                for (List<Object> record : csvBody)
-                    csvPrinter.printRecord(record);
+
+                // declaring date format:
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+                BigDecimal totalSpending = BigDecimal.valueOf(0);
+                BigDecimal totalNecessarySpending = BigDecimal.valueOf(0);
+
+                // data retrieving logic goes here
+                List<Expenses> expenses = expensesRepository.findExpensesForCSV( Sort.by( sortBy.equals("Newest") || sortBy.equals("Price: High to Low") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy.equals("Newest") || sortBy.equals("Oldest") ? "whatTime" : "price"), userId, new Date(startDate), new Date(endDate), minValue, maxValue == -1 ? Long.MAX_VALUE : maxValue, !includeUnnecessary);
+                for (Expenses expense : expenses) {
+                    totalSpending = totalSpending.add(expense.getPrice());
+                    if (expense.getNecessary()) {
+                        totalNecessarySpending = totalNecessarySpending.add(expense.getPrice());
+                    }
+                    csvPrinter.printRecord(expense.getWhatFor().substring(0, 1).toUpperCase() + expense.getWhatFor().substring(1), expense.getPrice(), expense.getNecessary() ? 'Y' : 'N', dateFormat.format(expense.getWhatTime()));
+                }
+
+                csvPrinter.printRecord(Arrays.asList("Total Spending", "Total Necessary Spending"));
+                csvPrinter.printRecord(totalSpending, totalNecessarySpending);
 
                 // writing the underlying stream
                 csvPrinter.flush();
