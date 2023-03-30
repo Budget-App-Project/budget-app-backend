@@ -55,7 +55,6 @@ public class LoginController {
         if (Arrays.equals(storedHashedPassword, hashedPassword)) {
             // generate jwt token to send back to client
             // then create routes for the adding, removing, and viewing expenses
-            System.out.println("The user is authorized, sending jwt");
             Date currDate = new Date();
             String jws = Jwts.builder().setSubject(loginInfo.getEmail()).setId(String.valueOf(associatedUser.getId())).claim("name", associatedUser.getName()).setIssuedAt(currDate).setExpiration(new Date(currDate.getTime() + TimeUnit.HOURS.toMillis(2))).signWith(KeyProperties.getPrivateKey()).compact();
             return ResponseEntity.ok(gson.toJson(new LoginResponseModel(jws)));
