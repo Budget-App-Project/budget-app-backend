@@ -5,9 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class BudgetAppBackendApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(BudgetAppBackendApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(BudgetAppBackendApplication.class, args);
+    }
 
 }

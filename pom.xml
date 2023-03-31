@@ -8,6 +8,7 @@
 		<version>3.0.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<packaging>war</packaging>
 	<groupId>com.example</groupId>
 	<artifactId>budget-app-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -15,6 +16,7 @@
 	<description>This will be the backend server interfacing with the postgresql database for the budget application.</description>
 	<properties>
 		<java.version>17</java.version>
+		<start-class>com.example.budgetappbackend.BudgetAppBackendApplication</start-class>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -63,6 +65,11 @@
 			<artifactId>commons-csv</artifactId>
 			<version>1.10.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -72,6 +79,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>budgetapp</finalName>
 	</build>
 
 </project>
