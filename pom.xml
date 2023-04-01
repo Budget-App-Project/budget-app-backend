@@ -79,7 +79,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
-		<finalName>budgetapp</finalName>
+		<finalName>ROOT</finalName>
 	</build>
 
 </project>
