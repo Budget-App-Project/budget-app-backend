@@ -5,7 +5,7 @@ import java.sql.Date;
 
 public class ExpenseInfoRequestModel {
     private BigDecimal price;
-    private Date whatTime; // this might need to be a string and then be converted to date later...
+    private Date whatTime;
     private String whatFor;
     private Boolean necessary;
 

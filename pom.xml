@@ -16,7 +16,6 @@
 	<description>This will be the backend server interfacing with the postgresql database for the budget application.</description>
 	<properties>
 		<java.version>17</java.version>
-		<start-class>com.example.budgetappbackend.BudgetAppBackendApplication</start-class>
 	</properties>
 	<dependencies>
 		<dependency>

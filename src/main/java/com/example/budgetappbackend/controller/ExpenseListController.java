@@ -6,6 +6,7 @@ import com.example.budgetappbackend.requestModel.ExpenseInfoRequestModel;
 import com.example.budgetappbackend.requestModel.PutExpenseInfoRequestModel;
 import com.example.budgetappbackend.responseModel.ErrorResponseModel;
 import com.example.budgetappbackend.responseModel.SuccessResponseModel;
+import com.example.budgetappbackend.responseModel.UpdateResponseModel;
 import com.example.budgetappbackend.shared.KeyProperties;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
@@ -94,19 +95,20 @@ public class ExpenseListController {
                     Expenses assocExpense = assocExpenseOptional.get();
                     if (assocExpense.getUserId() == userId) {
                         assocExpense.setAllButId(expenseInfo.getPrice(), expenseInfo.getWhatFor(), expenseInfo.getWhatTime(), expenseInfo.getNecessary());
-                        expensesRepository.save(assocExpense);
-                        return ResponseEntity.ok(new SuccessResponseModel("Successfully updated expense"));
+                        assocExpense = expensesRepository.save(assocExpense);
+                        System.out.println(assocExpense);
+                        return ResponseEntity.ok(gson.toJson(new UpdateResponseModel(assocExpense)));
                     } else {
-                        return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Unauthorized User")));
+                        return ResponseEntity.ok(new UpdateResponseModel());
                     }
                 } else {
-                    return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid Expense ID")));
+                    return ResponseEntity.ok(new UpdateResponseModel());
                 }
             } catch (Exception e) {
-                return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Invalid JWT")));
+                return ResponseEntity.ok(new UpdateResponseModel());
             }
         } else {
-            return ResponseEntity.ok(gson.toJson(new ErrorResponseModel("Please provide all fields")));
+            return ResponseEntity.ok(new UpdateResponseModel());
         }
     }
 
