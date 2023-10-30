@@ -1,5 +1,5 @@
 # Budget App Back End
-This project is a portfolio website created to give a little bit of insight into who I am, what technologies I work with, and what projects I have completed. However, the site can be adapted to the needs of anyone as it utilizes a CMS backend that can be created and changed by anyone.
+This project is the back end of the budget app website created to allow me to track my spending habits while learning about all sorts of technologies, however, it can be used by anyone who wants to! This project taught me a great deal about Java and Spring Boot in specific and how they can function together how they create fast and efficient webservers!
 
 ## Table of Contents
 - [Tech Stack](#tech-stack)
