@@ -6,7 +6,7 @@ This project is a portfolio website created to give a little bit of insight into
 - [Installation and Setup](#installation-and-setup)
 - [Setup](#setup)
   (optional)
-- [Deployment](#deployment)
+- [Endpoints](#deployment)
 - [Contributors](#contributors)
 
 ## Tech Stack
@@ -30,7 +30,7 @@ java -jar BudgetAppBackendApplication.java
 * Otherwise, set up the Apache Tomcat server and change the configurations in the build settings from jar to war and compile:
 * Then, move the war file over into the webserver and run it.
 
-## End Points
+## Endpoints
 * Get Expenses
   * Given a user session cookie, this endpoint will return a list of Expenses for the current month or selected timeframe for given user associated with that session.
 * Post Expense
