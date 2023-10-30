@@ -4,8 +4,6 @@ This project is a portfolio website created to give a little bit of insight into
 ## Table of Contents
 - [Tech Stack](#tech-stack)
 - [Installation and Setup](#installation-and-setup)
-- [Setup](#setup)
-  (optional)
 - [Endpoints](#deployment)
 - [Contributors](#contributors)
 
